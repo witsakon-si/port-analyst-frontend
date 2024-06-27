@@ -1,0 +1,136 @@
+<p-accordion (onOpen)="loadCashInOutHistory()" expandIcon="pi pi-plus" collapseIcon="pi pi-minus">
+  <p-accordionTab header="">
+    <ng-template pTemplate="header">
+      <button pButton pRipple type="button" icon="pi pi-info-circle"
+              class="table-button2 p-button-text mr-2"
+              (click)="$event.stopPropagation(); showAccountInfoDialog(accountInfo)"
+              style="font-size: 0.1rem"></button>
+      <div tooltipPosition="top" pTooltip="{{'Deposit - Withdraw - Dividend'}}">Net.Cost: {{accountInfo.balance | numberFormat}}</div>
+      <div tooltipPosition="top" pTooltip="{{'Market Value + Dividend'}}">, Net.Balance: {{accountInfo.netBalance | numberFormat}}</div>
+      <div tooltipPosition="top" pTooltip="{{'Unrealize Profit/Loss'}}">, U.P/L: {{accountInfo.profitLoss | numberFormat}}</div>
+      <div tooltipPosition="top" pTooltip="{{'%Unrealize Profit/Loss'}}">, %U.P/L: {{accountInfo.percentPL | numberFormat}}%</div>
+      <div tooltipPosition="top" pTooltip="{{'Deposit - Withdraw (exclude Dividend)'}}">&nbsp;(Cost: {{accountInfo.cashBalance | numberFormat}}</div>
+      <div tooltipPosition="top" pTooltip="{{'Cash Balance'}}">, Acct.Cash: {{accountInfo.netCashBalance | numberFormat}})</div>
+    </ng-template>
+    <p-table [value]="cashInOutList" styleClass="p-datatable-sm" responsiveLayout="scroll" selectionMode="single"
+             [paginator]="true" [rows]="10" [showCurrentPageReport]="true"
+             [globalFilterFields]="['cashType']"
+             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [rowsPerPageOptions]="[10,9999]">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 100px;" class="text-center">
+            <button pButton pRipple type="button" icon="pi pi-plus"
+                    class=" p-button-sm p-button-success table-header-button"
+                    (click)="openNew()"></button>
+            <button pButton pRipple type="button" icon="pi pi-chart-pie"
+                    class="table-button2 p-button-text ml-1"
+                    (click)="showChart()"
+                    style="font-size: 0.1rem"></button>
+          </th>
+          <th>Type</th>
+          <th>Dividend</th>
+          <th>Transaction Date</th>
+          <th>Amount</th>
+          <th>Remark</th>
+          <th></th>
+          <th width="150px">
+            <p-columnFilter type="text" field="cashType"></p-columnFilter>
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-cashInOut>
+        <tr>
+          <td></td>
+          <td>
+            <span class="text-center"
+              [ngClass]="{'product-badge': true, 'profit': cashInOut.cashType === 'DEPOSIT', 'loss': cashInOut.cashType === 'WITHDRAW'}">
+              {{cashInOut.cashType}}
+            </span>
+          </td>
+          <td>
+            <span class="pi pi-check text-center" *ngIf="cashInOut.dividend"></span>
+          </td>
+          <td class="text-center">{{cashInOut.transactionDate | dateFormat}}</td>
+          <td class="text-right">{{cashInOut.amount | currencyFormat}}</td>
+          <td>{{cashInOut.remark}}</td>
+          <td>
+            <button pButton pRipple type="button" icon="pi pi-pencil"
+                    class="table-button p-button-rounded p-button-text"
+                    *ngIf="!cashInOut.dividend"
+                    (click)="edit(cashInOut)"
+                    style="font-size: 0.1rem"></button>
+            <button pButton pRipple type="button" icon="pi pi-times"
+                    class="table-button  p-button-rounded p-button-text"
+                    *ngIf="!cashInOut.dividend"
+                    (click)="delete(cashInOut)"
+                    style="font-size: 0.1rem"></button>
+          </td>
+          <td></td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-accordionTab>
+</p-accordion>
+
+
+<p-dialog [(visible)]="showDialog" [style]="{width: '700px', 'min-height': '800px'}" header="Cash In/Out Details"
+          [modal]="true"
+          styleClass="p-fluid">
+  <br/>
+  <ng-template pTemplate="content">
+    <div class="former grid">
+      <div class="field col">
+        <label for="account">Account</label>
+        <input type="text" pInputText id="account" [(ngModel)]="cashInOut.account" [disabled]="true">
+      </div>
+    </div>
+    <div class="former grid">
+      <div class="field col">
+        <label for="cashType">Cash Type</label>
+        <p-selectButton id="cashType" [options]="cashType" [(ngModel)]="cashInOut.cashType" optionLabel="name"
+                        optionValue="code"></p-selectButton>
+      </div>
+      <div class="field col">
+        <div class="field-checkbox" style="margin-top: 35px">
+          <p-checkbox id="dividend" inputId="dividend" [(ngModel)]="cashInOut.dividend" [binary]="true"
+                      [disabled]="true"
+                      [value]="true"></p-checkbox>
+          <label for="dividend">Dividend</label>
+        </div>
+      </div>
+    </div>
+    <div class="former grid">
+      <div class="field col">
+        <label for="transactionDate">Date</label>
+        <p-calendar id="transactionDate" [(ngModel)]="cashInOut.transactionDate" dateFormat="dd/mm/yy"></p-calendar>
+        <small class="p-error" *ngIf="submitted && !cashInOut.transactionDate">Date is required.</small>
+      </div>
+      <div class="field col">
+        <label for="amount">Amount</label>
+        <p-inputNumber id="amount" [(ngModel)]="cashInOut.amount"
+                       mode="decimal" [minFractionDigits]="2"></p-inputNumber>
+        <small class="p-error" *ngIf="submitted && !cashInOut.amount">Amount is required.</small>
+      </div>
+    </div>
+    <div class="former grid">
+      <div class="field col">
+        <label for="remark">Remark</label>
+        <textarea id="remark" rows="5" cols="30" pInputTextarea [(ngModel)]="cashInOut.remark"></textarea>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="save()"></button>
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="showChartDialog" [style]="{width: '700px', 'min-height': '400px'}" header="Cash In/Out Chart"
+          [modal]="true"
+          styleClass="p-fluid">
+  <summary-chart [dataCashInOut]="chartData"></summary-chart>
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideChartDialog()"></button>
+  </ng-template>
+</p-dialog>

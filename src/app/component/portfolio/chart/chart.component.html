@@ -1,0 +1,18 @@
+<p-accordion expandIcon="pi pi-plus" collapseIcon="pi pi-minus">
+  <p-accordionTab header="Chart" [selected]="false">
+    <div class="former grid">
+      <ng-container *ngFor="let url of charts; let i = index">
+        <div class="field col">
+          <div style="padding-left: 770px">
+            <button pButton pRipple type="button" icon="pi pi-times"
+                    class="p-button-rounded p-button-text"
+                    (click)="closeChart(i)"></button>
+          </div>
+          <div>
+            <iframe height="600" width="800" [src]="url"></iframe>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </p-accordionTab>
+</p-accordion>

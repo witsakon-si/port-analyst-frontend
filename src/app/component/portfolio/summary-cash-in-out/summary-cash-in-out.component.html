@@ -1,0 +1,49 @@
+<h4>Cash In/Out Portfolio</h4>
+<p-table [value]="cashInOutByYears" rowGroupMode="rowspan" groupRowsBy="year" sortField="year" sortMode="single"
+         styleClass="p-datatable-sm" responsiveLayout="scroll" selectionMode="single">
+    <ng-template pTemplate="header">
+        <tr>
+            <th class="text-center">Year</th>
+            <th class="text-center">Net.Year</th>
+            <th class="text-center"><span class="product-badge profit">Dividend Y.</span></th>
+            <th class="text-center">Account</th>
+            <th class="text-center">Cash In</th>
+            <th class="text-center">Cash Out</th>
+            <th class="text-center"><span class="product-badge profit">Dividend</span></th>
+            <th class="text-center">Total</th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-data let-rowIndex="rowIndex" let-rowgroup="rowgroup"
+                 let-rowspan="rowspan">
+        <tr>
+            <td *ngIf="rowgroup" [attr.rowspan]="rowspan" class="text-center">
+                {{data.year}}
+            </td>
+            <td *ngIf="rowgroup" [attr.rowspan]="rowspan" class="text-right">
+                {{data.netCashYear | currencyFormat}}
+            </td>
+            <td *ngIf="rowgroup" [attr.rowspan]="rowspan" class="text-right">
+                <span *ngIf="data.dividendYear" class="product-badge profit">
+                    {{data.dividendYear | currencyFormat}}
+                </span>
+            </td>
+            <td>
+                {{data.type}}
+            </td>
+            <td class="text-right">
+                {{data.cashIn | currencyFormat}}
+            </td>
+            <td class="text-right">
+                {{data.cashOut | currencyFormat}}
+            </td>
+            <td class="text-right">
+                <span *ngIf="data.cashOutDividend" class="product-badge profit">
+                    {{data.cashOutDividend | currencyFormat}}
+                </span>
+            </td>
+            <td class="text-right">
+                {{data.netCash | currencyFormat}}
+            </td>
+        </tr>
+    </ng-template>
+</p-table>

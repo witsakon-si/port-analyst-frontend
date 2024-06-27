@@ -1,0 +1,569 @@
+<p-toast></p-toast>
+<p-card>
+<div class="former grid">
+  <div class="field col-3">
+    <p-selectButton [options]="viewModeOption" [(ngModel)]="viewMode" optionLabel="name"
+                    (onChange)="changeViewMode()"></p-selectButton>
+    <p-checkbox name="matchOrderMode" class="pt-3" [binary]="true" (onChange)="changeMatchOrderMode()"
+                label="Match Order / Simulate PL" [(ngModel)]="matchOrderMode"></p-checkbox>
+  </div>
+  <div class="field col-4">
+    <p-selectButton [options]="activeStatuses" [(ngModel)]="activeStatus" optionLabel="name"
+                    (onChange)="changeActiveStatus()"></p-selectButton>
+    <p-dropdown [options]="assetList" [(ngModel)]="selectedAsset" optionLabel="name"
+                [filter]="true" filterBy="name" [showClear]="true"
+                (onChange)="changeAsset()">
+
+      <ng-template pTemplate="selectedItem">
+        <div *ngIf="selectedAsset">
+          <div>{{selectedAsset.name}}</div>
+        </div>
+      </ng-template>
+      <ng-template let-asset pTemplate="item">
+        <div>
+          <div>{{asset.name}}</div>
+        </div>
+      </ng-template>
+    </p-dropdown>
+    <ng-container *ngIf="viewMode.code === 'all'">
+      <p-checkbox name="filterType" class="pl-3 pb-3" [binary]="true" (onChange)="changeFilterType()" label="Order" [(ngModel)]="selectedOrder"></p-checkbox>
+      <p-checkbox name="filterType" class="pl-3 pb-3" [binary]="true" (onChange)="changeFilterType()" label="Dividend" [(ngModel)]="selectedDividend"></p-checkbox>
+      <p-checkbox name="filterType" class="pl-3 pb-3" [binary]="true" (onChange)="changeFilterType()" label="Dividend(ST)" [(ngModel)]="selectedDividendSt"></p-checkbox>
+    </ng-container>
+  </div>
+  <div class="field col-3">
+    <p-button label="History" (onClick)="openNew()" icon="pi pi-plus"></p-button>
+    <p-button class="pl-2" label="Dividend/Interest" (onClick)="openDividendDialogNew()" icon="pi pi-plus"></p-button>
+    <p-button class="pl-2" label="Sync Price" (onClick)="syncPrice()" icon="pi pi-download"></p-button>
+  </div>
+  <div class="field col-2">
+    <button pButton pRipple type="button" icon="pi pi-cog" class="p-button-rounded p-button-text"
+            (click)="openSettingDialog()"></button>
+<!--    <button pButton type="button" label="API" class="p-button-link" (click)="linkApi()"></button>-->
+    <button pButton type="button" label="Activity" class="p-button-link mb-1" (click)="showActivityDialog()"></button>
+    <button pButton type="button" label="Match Order" class="p-button-link mb-1"
+            [disabled]="!this.orderMatch.historyIds || this.orderMatch.historyIds.length == 0"
+            (click)="saveMatchOrder()"></button>
+    <button pButton pRipple type="button" icon="pi pi-book" class="p-button-rounded p-button-text"
+            [disabled]="!this.orderMatch.historyIds || this.orderMatch.historyIds.length == 0"
+            (click)="openSimulatePLDialog(false)"></button>
+  </div>
+</div>
+</p-card>
+<br/>
+<p-card>
+  <summary [histories]="orgHistories" [dataCost]="dataCost"></summary>
+  <performance [realizePLByYear]="realizePLByYear" [realizePLByWeek]="realizePLByWeek"
+               [realizePL]="realizePL"></performance>
+  <plan-xd [histories]="orgHistories" [originArrAsset]="originArrAsset"></plan-xd>
+  <note></note>
+  <chart [chartURL]="chartURL"></chart>
+  <p-tabView [activeIndex]="activeTab" (onChange)="changeTab($event)">
+    <p-tabPanel [header]="item.type" *ngFor="let item of histories; let i = index">
+      <cash-in-out [account]="item.type" [accountInfo]="item.accountInfo">
+      </cash-in-out>
+      <p-table [value]="item.list" styleClass="p-datatable-sm" responsiveLayout="scroll" selectionMode="single"
+               [paginator]="true" [rows]="50" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+               [rowsPerPageOptions]="[50, 100, 200, 500, 99999]">
+        <ng-container *ngIf="viewMode.code === 'summary'">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Name</th>
+              <th>Net Amount</th>
+              <th>Amount</th>
+              <th>Unit</th>
+  <!--            <th>Price</th>-->
+              <th>Mkt.Price</th>
+              <th>Commission</th>
+              <th>Fee</th>
+              <th>Cl.Fee</th>
+              <th>Vat</th>
+              <th></th>
+              <th>Profit/Loss</th>
+              <th>%PL</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-history>
+            <tr>
+              <td>
+                <span (click)="setFocus(history.name); op.toggle($event)">{{history.name}}</span>
+                <button pButton pRipple type="button" icon="pi pi-chart-line"
+                        class="table-button2 p-button-text ml-3"
+                        (click)="getChartURL(history.name)"
+                        style="font-size: 0.1rem"></button>
+                <button *ngIf="history.status === 'inactive' && history.orderMatch !== '-'"
+                        pButton pRipple type="button" icon="pi pi-bolt"
+                        class="table-button2 p-button-text"
+                        (click)="unmatchOrder(history.orderMatch)"
+                        style="font-size: 0.1rem"></button>
+              </td>
+              <td class="text-right">{{history.netAmount | currencyFormat}}</td>
+              <td class="text-right">{{history.amount | currencyFormat}}</td>
+              <td class="text-right">{{history.unit | numberFormat}}</td>
+  <!--            <td class="text-right">{{history.unitPrice | currencyFormat}}</td>-->
+              <td class="text-right">
+                <ng-container *ngIf="history.refPrice">
+                  <span class="days-badge mr-1">{{history.refPrice}}</span>
+                </ng-container>
+                <span tooltipPosition="left" pTooltip="{{toDatetime(history.mktPriceDt)}}">{{history.mktPrice | currencyFormat}}</span>
+                <button pButton pRipple type="button" icon="pi pi-download"
+                        class="table-button2 p-button-text ml-3"
+                        (click)="getFullPrice(history)"
+                        style="font-size: 0.1rem"></button>
+                <button pButton pRipple type="button" icon="pi pi-info-circle"
+                        class="table-button2 p-button-text"
+                        *ngIf="history.fullPrice"
+                        tooltipPosition="left" pTooltip="{{history.fullPrice}}"
+                        style="font-size: 0.1rem"></button>
+                <span class="pl-4" *ngIf="!history.fullPrice"></span>
+              </td>
+              <td class="text-right">{{history.commission | currencyFormat}}</td>
+              <td class="text-right">{{history.fee | currencyFormat}}</td>
+              <td class="text-right">{{history.clearingFee | currencyFormat}}</td>
+              <td class="text-right">{{history.vat | currencyFormat}}</td>
+              <td><i class="pi pi-spin pi-spinner" *ngIf="history.status === 'active'"></i></td>
+
+              <td *ngIf="history.status === 'inactive'">
+              <span [ngClass]="{'product-badge': true, 'profit': history.realizePL > 0, 'loss': history.realizePL < 0}">
+                {{history.realizePL > 0 ? '+' : ''}}{{history.realizePL | currencyFormat}}
+              </span>
+              <ng-container *ngIf="history.totalDividend > 0">
+                 /
+                <span [ngClass]="{'product-badge': true, 'profit': true}">
+                  {{history.totalDividend | currencyFormat}}
+                </span>
+              </ng-container>
+              </td>
+              <td *ngIf="history.status === 'inactive'">
+              <span *ngIf="history.percentPL"
+                    [ngClass]="{'product-badge': true, 'profit': history.realizePL > 0, 'loss': history.realizePL < 0}">
+                {{history.realizePL > 0 ? '+' : ''}}{{history.percentPL | currencyFormat}}%
+              </span>
+              </td>
+
+              <td *ngIf="history.status === 'active'">
+                <button pButton pRipple type="button" icon="pi pi-chart-bar"
+                        class="table-button2 p-button-text mr-1"
+                        (click)="showChartDialog(history.type, history.name)"
+                        style="font-size: 0.1rem"></button>
+              <span [ngClass]="{'product-badge': true, 'profit': history.unPL > 0, 'loss': history.unPL < 0}">
+                {{history.unPL > 0 ? '+' : ''}}{{history.unPL | currencyFormat}}
+              </span>
+              <ng-container *ngIf="history.totalDividend > 0">
+                 /
+                <span [ngClass]="{'product-badge': true, 'profit': true}">
+                  {{history.totalDividend | currencyFormat}}
+                </span>
+              </ng-container>
+              </td>
+              <td *ngIf="history.status === 'active'">
+              <span *ngIf="history.percentUnPL"
+                    [ngClass]="{'product-badge': true, 'profit': history.unPL > 0, 'loss': history.unPL < 0}">
+                {{history.unPL > 0 ? '+' : ''}}{{history.percentUnPL | currencyFormat}}%
+              </span>
+              </td>
+              <td>
+                <span class="days-badge" tooltipPosition="left" pTooltip="{{history.periodHold}}">{{periodFormatPipe.transform(history.day, history.month, history.year)}}</span>
+              </td>
+            </tr>
+          </ng-template>
+        </ng-container>
+
+        <ng-container *ngIf="viewMode.code === 'all'">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Name</th>
+              <th>Net Amount</th>
+              <th>Amount</th>
+              <th>Unit</th>
+              <th>Price</th>
+              <th>Mkt.Price</th>
+              <th>Commission</th>
+              <th>Fee</th>
+              <th>Cl.Fee</th>
+              <th>Vat</th>
+              <th></th>
+              <th>Profit/Loss</th>
+              <th>%PL</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-history>
+            <tr [ngClass]="{'history-header': !history.side, 'side-buy': history.side === 'B', 'side-sell': history.side === 'S', 'dividend': history.dividend, 'dividendSt': history.dividendSt}">
+              <td>
+                <span *ngIf="history.side">
+                  <p-checkbox *ngIf="matchOrderMode && history.status === 'active'" [disabled]="history.dividend || history.netAmount == 0" [binary]="true"
+                              (onChange)="matchOrder(history)" [(ngModel)]="history.selected"></p-checkbox>
+                  {{toDate(history.transactionDate)}}
+                </span>
+                <span *ngIf="!history.side">{{history.name}}
+                  <button pButton pRipple type="button" icon="pi pi-chart-line"
+                          class="table-button2 p-button-text ml-3"
+                          (click)="getChartURL(history.name)"
+                          style="font-size: 0.1rem"></button>
+                  <button *ngIf="history.status === 'inactive' && history.orderMatch !== '-'"
+                          pButton pRipple type="button" icon="pi pi-bolt"
+                          class="table-button2 p-button-text"
+                          (click)="unmatchOrder(history.orderMatch)"
+                          style="font-size: 0.1rem"></button>        
+                </span>
+              </td>
+              <td class="text-right">{{history.netAmount | currencyFormat}}</td>
+              <td class="text-right">{{history.amount | currencyFormat}}</td>
+              <td class="text-right">{{history.unit | numberFormat}}</td>
+              <td class="text-right">{{history.unitPrice | currencyFormat}}</td>
+              <td class="text-right"><span tooltipPosition="left" pTooltip="{{toDateTime(history.mktPriceDt)}}">{{history.mktPrice | currencyFormat}}</span></td>
+              <td class="text-right">{{history.commission | currencyFormat}}</td>
+              <td class="text-right">{{history.fee | currencyFormat}}</td>
+              <td class="text-right">{{history.clearingFee | currencyFormat}}</td>
+              <td class="text-right">{{history.vat | currencyFormat}}</td>
+              <td>
+                <i class="pi pi-spin pi-spinner" *ngIf="history.status === 'active'"></i></td>
+              <td *ngIf="history.status === 'inactive' && history.realizePL">
+              <span [ngClass]="{'product-badge': true, 'profit': history.realizePL > 0, 'loss': history.realizePL < 0}">
+                {{history.realizePL > 0 ? '+' : ''}}{{history.realizePL | currencyFormat}}
+              </span>
+              <ng-container *ngIf="history.totalDividend > 0">
+                /
+                <span [ngClass]="{'product-badge': true, 'profit': true}">
+                  {{history.totalDividend | currencyFormat}}
+                </span>
+              </ng-container>
+              </td>
+              <td *ngIf="history.status === 'inactive' && history.realizePL">
+              <span *ngIf="history.percentPL"
+                    ngClass]="{'product-badge': true, 'profit': history.realizePL > 0, 'loss': history.realizePL < 0}">
+                {{history.realizePL > 0 ? '+' : ''}}{{history.percentPL | currencyFormat}}%
+              </span>
+              </td>
+              <td *ngIf="history.status === 'active' && history.unPL">
+                <button pButton pRipple type="button" icon="pi pi-chart-bar"
+                        class="table-button2 p-button-text mr-1"
+                        (click)="showChartDialog(history.type, history.name)"
+                        style="font-size: 0.1rem"></button>
+              <span [ngClass]="{'product-badge': true, 'profit': history.unPL > 0, 'loss': history.unPL < 0}">
+                {{history.unPL > 0 ? '+' : ''}}{{history.unPL | currencyFormat}}
+              </span>
+              <ng-container *ngIf="history.totalDividend > 0">
+                /
+                <span [ngClass]="{'product-badge': true, 'profit': true}">
+                  {{history.totalDividend | currencyFormat}}
+                </span>
+              </ng-container>
+              </td>
+              <td *ngIf="history.status === 'active' && history.unPL">
+              <span *ngIf="history.percentUnPL"
+                    [ngClass]="{'product-badge': true, 'profit': history.unPL > 0, 'loss': history.unPL < 0}">
+                {{history.unPL > 0 ? '+' : ''}}{{history.percentUnPL | currencyFormat}}%
+              </span>
+              </td>
+              <td *ngIf="history.status === 'inactive' && history.percentPL">
+                <span *ngIf="history.percentPL"
+                      [ngClass]="{'product-badge': true, 'profit': history.realizePL > 0, 'loss': history.realizePL < 0}">
+                  {{history.realizePL > 0 ? '+' : ''}}{{history.percentPL | currencyFormat}}%
+                </span>
+              </td>
+
+              <td *ngIf="!history.side">
+                <span class="days-badge" tooltipPosition="left" pTooltip="{{history.periodHold}}">{{periodFormatPipe.transform(history.day, history.month, history.year)}}</span>
+              </td>
+              <td *ngIf="history.side"></td>
+              <td *ngIf="history.side"></td>
+
+              <td *ngIf="history.side">
+                <button pButton pRipple type="button" icon="pi pi-pencil"
+                        class="table-button p-button-rounded p-button-text"
+                        (click)="edit(history)"
+                        style="font-size: 0.1rem"></button>
+                <button pButton pRipple type="button" icon="pi pi-times"
+                        class="table-button  p-button-rounded p-button-text"
+                        (click)="deleteHistory(history)"
+                        style="font-size: 0.1rem"></button>
+              </td>
+            </tr>
+          </ng-template>
+        </ng-container>
+      </p-table>
+    </p-tabPanel>
+  </p-tabView>
+<!--  <timeline [histories]="histories" [activeTab]="activeTab"></timeline>-->
+</p-card>
+
+<p-dialog [(visible)]="historyDialog" [style]="{width: '500px'}" header="History Details" [modal]="true"
+          styleClass="p-fluid">
+  <br/>
+  <ng-template pTemplate="content">
+    <div class="former grid">
+      <div class="field col">
+        <label for="side">Side</label>
+        <p-selectButton id="side" [options]="side" [(ngModel)]="history.side" optionLabel="name"
+                        optionValue="code"></p-selectButton>
+      </div>
+      <div class="field col">
+        <label for="type">Group</label>
+        <p-autoComplete id="type" [(ngModel)]="history.type" [suggestions]="arrGroup"
+                        [ngClass]="{'side-buy': history.side === 'B', 'side-sell': history.side === 'S'}"
+                        (onSelect)="onChangeGroup(history)"
+                        (completeMethod)="searchGroup($event)"></p-autoComplete>
+      </div>
+      <div class="field col">
+        <label for="name">Name</label>
+        <p-autoComplete id="name" [(ngModel)]="history.name" [suggestions]="arrAsset"
+                        [ngClass]="{'side-buy': history.side === 'B', 'side-sell': history.side === 'S'}"
+                        [disabled]="!history.type"
+                        (focusout)="onChangeName(history)"
+                        (completeMethod)="searchAsset($event)"></p-autoComplete>
+      </div>
+    </div>
+    <div class="former grid">
+      <div class="field col">
+        <label for="transactionDate">Date</label>
+        <p-calendar id="transactionDate" [(ngModel)]="history.transactionDate" dateFormat="dd/mm/yy"
+                    [ngClass]="{'side-buy': history.side === 'B', 'side-sell': history.side === 'S'}"></p-calendar>
+        <small class="p-error" *ngIf="submitted && !history.transactionDate">Date is required.</small>
+      </div>
+      <div class="field col">
+        <label for="unit">Unit
+          <button *ngIf="history.side === 'S' && (history.name && history.type)" pButton pRipple type="button" icon="pi pi-download"
+                  class="table-button2 p-button-text ml-6" (click)="getAvailableUnit(history)" style="font-size: 0.1rem">
+          </button>
+        </label>
+        <p-inputNumber id="unit" [(ngModel)]="history.unit"
+                       [ngClass]="{'side-buy': history.side === 'B', 'side-sell': history.side === 'S'}"
+                       [disabled]="!(history.name && history.type)" (keyup)="onChangeUnit(history, $event)"
+                       mode="decimal" [minFractionDigits]="7"></p-inputNumber>
+        <small class="p-error" *ngIf="submitted && !history.netAmount">Unit is required.</small>
+      </div>
+      <div class="field col">
+        <label for="unitPrice">Price</label>
+        <p-inputNumber id="unitPrice" [(ngModel)]="history.unitPrice"
+                       [ngClass]="{'side-buy': history.side === 'B', 'side-sell': history.side === 'S'}"
+                       [disabled]="!(history.name && history.type)" (keyup)="onChangePrice(history, $event)"
+                       mode="decimal" [minFractionDigits]="7"></p-inputNumber>
+        <small class="p-error" *ngIf="submitted && !history.netAmount">Price is required.</small>
+      </div>
+      <div class="field col">
+        <label for="amount">Amt</label>
+        <p-inputNumber id="amount" [(ngModel)]="history.amount" [disabled]="!(history.name && history.type)"
+                       [ngClass]="{'side-buy': history.side === 'B', 'side-sell': history.side === 'S'}"
+                       mode="decimal" [minFractionDigits]="7"></p-inputNumber>
+        <small class="p-error" *ngIf="submitted && !history.amount">Amt is required.</small>
+      </div>
+    </div>
+    <div class="former grid">
+      <div class="field col-3">
+        <label for="fee">Fee</label>
+        <p-inputNumber id="fee" [(ngModel)]="history.fee"
+                       [ngClass]="{'side-buy': history.side === 'B', 'side-sell': history.side === 'S'}"
+                       [disabled]="!(history.name && history.type)"
+                       mode="decimal" [minFractionDigits]="7"
+                       (keyup)="onChangeFee(history, $event)"></p-inputNumber>
+        <span>({{history.feeRate}})%</span>
+      </div>
+      <div class="field col-3">
+        <label for="clearingFee">Clearing Fee</label>
+        <p-inputNumber id="clearingFee" [(ngModel)]="history.clearingFee"
+                       [ngClass]="{'side-buy': history.side === 'B', 'side-sell': history.side === 'S'}"
+                       [disabled]="!(history.name && history.type)"
+                       mode="decimal" [minFractionDigits]="7"
+                       (keyup)="onChangeClearingFee(history, $event)"></p-inputNumber>
+        <span>({{history.clearingFeeRate}})%</span>
+      </div>
+      <div class="field col-3">
+        <label for="vat">Vat</label>
+        <p-inputNumber id="vat" [(ngModel)]="history.vat"
+                       [ngClass]="{'side-buy': history.side === 'B', 'side-sell': history.side === 'S'}"
+                       [disabled]="!(history.name && history.type)"
+                       mode="decimal" [minFractionDigits]="7"
+                       (keyup)="onChangeVat(history, $event)"></p-inputNumber>
+        <span>({{history.vatRate}})%</span>
+      </div>
+      <div class="field col-3">
+        <label for="commission">Commission</label>
+        <p-inputNumber id="commission" [(ngModel)]="history.commission"
+                       [ngClass]="{'side-buy': history.side === 'B', 'side-sell': history.side === 'S'}"
+                       [disabled]="!(history.name && history.type)"
+                       mode="decimal" [minFractionDigits]="7"
+                       (keyup)="onChangeCommission(history, $event)"></p-inputNumber>
+        <span>({{history.commissionRate}})%</span>
+      </div>
+    </div>
+    <div class="former grid">
+      <div class="field col">
+        <label for="netAmount">Net Amt</label>
+        <p-inputNumber id="netAmount" [(ngModel)]="history.netAmount"
+                       [ngClass]="{'side-buy': history.side === 'B', 'side-sell': history.side === 'S'}"
+                       [disabled]="!(history.name && history.type)"
+                       mode="decimal"
+                       [minFractionDigits]="7"></p-inputNumber>
+        <small class="p-error" *ngIf="submitted && !history.netAmount">Net Amt is required.</small>
+      </div>
+    </div>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveHistory()"></button>
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="dividendDialog" [style]="{width: '500px', 'min-height': '650px'}" header="Dividend/Interest Details" [modal]="true"
+          styleClass="p-fluid">
+  <br/>
+  <ng-template pTemplate="content">
+    <div class="former grid">
+      <div class="field col">
+        <label for="typeDividend">Group</label>
+        <p-autoComplete id="typeDividend" [(ngModel)]="history.type" [suggestions]="arrGroup"
+                        [ngClass]="{'side-buy': true}"
+                        (onSelect)="onChangeGroup(history)"
+                        (completeMethod)="searchGroup($event)"></p-autoComplete>
+      </div>
+      <div class="field col">
+        <label for="nameDividend">Name</label>
+        <p-autoComplete id="nameDividend" [(ngModel)]="history.name" [suggestions]="arrAsset"
+                        [ngClass]="{'side-buy': true}"
+                        [disabled]="!history.type"
+                        (focusout)="onChangeName(history)"
+                        (completeMethod)="searchAsset($event)"></p-autoComplete>
+      </div>
+    </div>
+    <div class="former grid">
+      <div class="field col">
+        <label for="transactionDateDividend">Date</label>
+        <p-calendar id="transactionDateDividend" [(ngModel)]="history.transactionDate" dateFormat="dd/mm/yy"
+                    [ngClass]="{'side-buy': true}"></p-calendar>
+        <small class="p-error" *ngIf="submitted && !history.transactionDate">Date is required.</small>
+      </div>
+      <div class="field col">
+        <label for="netAmountDividend">Net Amt</label>
+        <p-inputNumber id="netAmountDividend" [(ngModel)]="history.netAmount"
+                       [ngClass]="{'side-buy': true}"
+                       [disabled]="!(history.name && history.type)"
+                       mode="decimal"
+                       [minFractionDigits]="2"></p-inputNumber>
+        <small class="p-error" *ngIf="submitted && !history.netAmount">Net Amt is required.</small>
+      </div>
+    </div>
+    <div class="former grid">
+      <div class="field col">
+        <p-checkbox name="interest" class="pt-6" [binary]="true" label="interest" [(ngModel)]="history.interest"></p-checkbox>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveDividend()"></button>
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDividendDialog()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog #settingDlg [(visible)]="settingDialog" [style]="{width: '1300px'}" header="Setting" [modal]="true" styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <chart-setting [originArrAsset]="originArrAsset"></chart-setting>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="chartDialog" [style]="{width: '1000px'}" header="Monthly Profit/Loss Chart" [modal]="true" styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <monthly-pl [monthlyPlParam]="monthlyPlParam"></monthly-pl>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text"
+            (click)="hideChartDialog()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="activityDialog" [style]="{width: '80%'}" header="Activity" [modal]="true" styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <full-calendar [options]="calendarOptions"></full-calendar>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text"
+            (click)="hideActivityDialog()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="simulatePLDialog" (onHide)="hideSimulatePLDialog()" [style]="{width: '1300px'}" header="Simulate Profit/Loss" [modal]="true" styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <p-table [value]="simulatePLs" styleClass="p-datatable-sm three-dot" responsiveLayout="scroll" selectionMode="single">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>
+            <button pButton pRipple type="button" icon="pi pi-arrows-v"
+                    class=" p-button-sm p-button-success table-header-button"
+                    (click)="extendSimulatePLDialog()"
+            ></button>
+            Unit
+          </th>
+          <th>Buy</th>
+          <th>Sell</th>
+          <th>
+            Diff ({{stepPrice[posStepPrice]}})
+            <button pButton pRipple type="button" icon="pi pi-caret-up"
+                    class=" p-button-sm p-button-success table-header-button"
+                    (click)="upStepPrice()"
+            ></button>
+          </th>
+          <th>Sum Buy</th>
+          <th>Sum Sell</th>
+          <th>Commission buy (0.16%)</th>
+          <th>Commission sell (0.16%)</th>
+          <th>Vat buy (7%)</th>
+          <th>Vat sell (7%)</th>
+          <th>Total buy</th>
+          <th>Total sell</th>
+          <th>Net</th>
+          <th>%Net</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-data>
+        <tr>
+          <td [class]="{'dividend': data.diff == 0}">{{data.unit | numberFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0}">{{data.buy.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0}">{{data.sell.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0}">{{data.diff.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0}">{{data.sumBuy.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0}">{{data.sumSell.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0}">{{data.commissionBuy.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0}">{{data.commissionSell.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0}">{{data.vatBuy.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0}">{{data.vatSell.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0}">{{data.totalBuy.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0}">{{data.totalSell.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0, 'text-right': true}">{{data.net.toFixed(2) | currencyFormat}}</td>
+          <td [class]="{'dividend': data.diff == 0, 'text-right': true}">{{data.percentNet.toFixed(2) | currencyFormat}}%</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </ng-template>
+</p-dialog>
+
+<p-overlayPanel #op [showCloseIcon]="true" [style]="{width: '450px'}">
+  <textarea id="note" rows="10" cols="50" pInputTextarea [(ngModel)]="note"></textarea>
+  <div class="grid">
+    <div class="field col-8 mt-2">
+      <span>Last update: {{lastUpdateNote}}</span>
+    </div>
+    <div class="field col-4">
+      <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text"
+              (click)="saveNote()"></button>
+    </div>
+  </div>
+</p-overlayPanel>
+
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>

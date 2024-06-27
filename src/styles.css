@@ -1,0 +1,171 @@
+/* You can add global styles to this file, and also import other style files */
+.side-buy, .side-buy input, .profit {
+  background-color: #3d4035 !important;
+  /*color: #161d21 !important;*/
+}
+.side-sell, .side-sell input, .loss {
+  background-color: #8a2f47 !important;
+  /*color: #161d21 !important;*/
+}
+.dividend {
+  background-color: #0b285c !important;
+}
+.dividendSt {
+  background-color: #0d5663 !important;
+}
+.warning {
+  background-color: #65647c !important;
+}
+tr.side-buy:hover {
+  background-color: #2e3029 !important;
+}
+tr.side-sell:hover {
+  background-color: #6b2437 !important;
+}
+tr.dividend:hover {
+  background-color: #071f4a !important;
+}
+tr.dividendSt:hover {
+  background-color: #0c4d58 !important;
+}
+.history-header {
+  font-weight: bold;
+  background-color: #131617 !important;
+}
+.table-button {
+  height: 1rem !important;
+}
+.table-button2 {
+  height: 1rem !important;
+  width: 1rem !important;
+}
+.table-header-button {
+  height: 20px !important;
+  width: 20px !important;
+  margin-right: 5px !important;
+}
+.product-badge {
+  border-radius: 10px;
+  padding: 0.25em 0.5rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .3px;
+}
+.product-badge.profit {
+  background: #3d4035 !important;
+  /*color: #256029 !important;*/
+}
+.product-badge.loss {
+  background: #8a2f47 !important;
+  /*color: #c63737 !important;*/
+}
+
+.days-badge {
+  border-radius: 10px !important;
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+  background: #f5d38c !important;
+  font-size: 13px !important;
+  font-weight: normal !important;
+  color: black !important;
+}
+
+:host ::ng-deep .p-dropdown {
+  width: 14rem;
+}
+.setting-btn {
+  margin-top: 17px !important;
+}
+.setting-col {
+  padding: 0.4rem !important;
+}
+
+body {
+  background-color: #000000 !important;
+}
+
+.alert-danger {
+  font-size: 13px !important;
+  color: #f44435;
+}
+
+.progress-spinner {
+  position: fixed;
+  z-index: 99999;
+  height: 2em;
+  width: 2em;
+  overflow: show;
+  margin: auto;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+/* Transparent Overlay */
+.progress-spinner:before {
+  content: '';
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.53);
+}
+
+.device-selected {
+  background-color: darkslategray !important;
+}
+
+.msg-box {
+  position: relative;
+  padding-bottom: 5px;
+}
+.msg-box-detail {
+  position: absolute;
+  background: #262626;
+  display: inline;
+  z-index: 1;
+  padding: 0 3px 0 3px;
+}
+.msg-box-dot {
+  content: '';
+  position: absolute;
+  border-bottom: 2px dotted #ddd;
+  width: 100%;
+  padding-top: 0.9rem;
+}
+.msg-box-right {
+  right: 0;
+}
+
+.box-side {
+  min-width: 15em;
+}
+.box-side:after {
+  content: '';
+  border-bottom: dotted 2px white;
+  display: block;
+  overflow: hidden;
+  height: 0.8em;
+}
+.box-side-hidden {
+  min-width: 15em;
+}
+.box-side-hidden:after {
+  content: '';
+  display: block;
+  overflow: hidden;
+  height: 0.8em;
+}
+.box-side-right {
+  float: right;
+  margin-left: 0.5em;
+  text-align: right;
+}
+.box-side-left {
+  float: left;
+  margin-right: 0.5em;
+}
