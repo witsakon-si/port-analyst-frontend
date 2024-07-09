@@ -11,6 +11,8 @@ import {CurrencyPipe} from "../../shared/currency.pipe";
 // @ts-ignore
 import * as SockJS from 'sockjs-client';
 import {Stomp} from "@stomp/stompjs";
+import {AuthService} from "../../auth/auth.service";
+import {ApiService} from "../../service/api.service";
 
 @Component({
     selector: 'price-alert',
@@ -33,12 +35,14 @@ export class PriceAlertComponent implements OnInit {
     arrSymbol: any;
     originArrSymbol: any;
 
-    webSocketEndPoint: string = this.apiUrl + '/ws';
+    webSocketEndPoint: string = this.apiUrl + '/ws?token='+this.authService.getToken();
     topic: string = "/topic/realtime-price";
     stompClient: any;
     realtimePriceData: any;
 
     constructor(private configService: AppConfigService, private http: HttpClient,
+                private authService: AuthService,
+                private apiService: ApiService,
                 private messageService: MessageService, private confirmationService: ConfirmationService) {
         this.conditionType = [];
         this.noticeFrequency = [];
@@ -54,8 +58,8 @@ export class PriceAlertComponent implements OnInit {
         this.stompClient = Stomp.over(ws);
         this.stompClient.debug = () => {};
         const _this = this;
-        _this.stompClient.connect({}, (frame: any) => {
-            _this.stompClient.subscribe(_this.topic, (message: any) => {
+        _this.stompClient.connect({Authorization: `Bearer ${this.authService.getToken()}`}, (frame: any) => {
+          _this.stompClient.subscribe(_this.topic, (message: any) => {
                 const priceData = JSON.parse(message.body);
                 priceData.lastUpdate = new Date(priceData.lastUpdate);
                 const index = this.realtimePriceData.findIndex((object: { symbol: any; }) => {
@@ -72,10 +76,10 @@ export class PriceAlertComponent implements OnInit {
     }
 
     loadPriceAlert() {
-        this.http.get(this.apiUrl + '/price-alert/', {observe: 'response'})
+        this.apiService.get('/price-alert')
             .subscribe({
                 next: data => {
-                    let body = JSON.parse(JSON.stringify(data)).body;
+                    let body = JSON.parse(JSON.stringify(data));
                     this.realtimePriceData = body.realtimePrice;
                     this.realtimePriceData.forEach((item: any) => {
                         item.lastUpdate = new Date(item.lastUpdate);
@@ -123,7 +127,7 @@ export class PriceAlertComponent implements OnInit {
             header: 'Confirm',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
-                this.http.delete(this.apiUrl + '/price-alert/' + priceAlert.id)
+                this.apiService.delete('/price-alert/' + priceAlert.id)
                     .subscribe({
                         next: data => {
                             this.loadPriceAlert();
@@ -152,7 +156,7 @@ export class PriceAlertComponent implements OnInit {
         this.submitted = true;
         const obj = JSON.parse(JSON.stringify(this.priceAlert));
         delete obj.mktPrice;
-        this.http.post(this.apiUrl + '/price-alert/', obj)
+        this.apiService.post('/price-alert', obj)
             .subscribe({
                 next: data => {
                     this.hideDialog();
@@ -183,10 +187,10 @@ export class PriceAlertComponent implements OnInit {
 
     onChangeSymbol(symbol: string) {
         if (symbol) {
-            this.http.get(this.apiUrl + '/get-forex-price?symbol=' + symbol, {observe: 'response'})
+            this.apiService.get('/get-forex-price?symbol=' + symbol)
                 .subscribe({
                     next: data => {
-                        let body = JSON.parse(JSON.stringify(data)).body;
+                        let body = JSON.parse(JSON.stringify(data));
                         this.priceAlert.mktPrice = body.price;
                     },
                     error: error => {

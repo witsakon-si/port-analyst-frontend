@@ -3,10 +3,10 @@ import {DateFormatPipe} from "../../../shared/date.pipe";
 import {NumberFormatPipe} from "../../../shared/number.pipe";
 import {HttpClient} from "@angular/common/http";
 import {MessageService} from "primeng/api";
-import {environment} from "../../../../environments/environment";
 import {AppConfig} from "../../../domain/appconfig";
 import {AppConfigService} from "../../../service/appconfigservice";
 import {UIChart} from "primeng/chart";
+import {ApiService} from "../../../service/api.service";
 
 @Component({
   selector: 'summary-chart',
@@ -15,7 +15,6 @@ import {UIChart} from "primeng/chart";
   providers: [DateFormatPipe, NumberFormatPipe],
 })
 export class SummaryChartComponent implements OnInit {
-  private apiUrl = environment.apiURL;
 
   @Input('isAccordionOpened') isAccordionOpened: any;
   @Input('dataCashInOut') dataCashInOut: any;
@@ -28,6 +27,7 @@ export class SummaryChartComponent implements OnInit {
 
   constructor(private http: HttpClient,
               private messageService: MessageService,
+              private apiService: ApiService,
               private configService: AppConfigService) {
   }
 
@@ -76,10 +76,10 @@ export class SummaryChartComponent implements OnInit {
   }
 
   loadData() {
-    this.http.get(this.apiUrl + '/daily-sum/', {observe: 'response'})
+    this.apiService.get('/daily-sum')
         .subscribe({
           next: data => {
-            let body = JSON.parse(JSON.stringify(data)).body;
+            let body = JSON.parse(JSON.stringify(data));
             const result = body.result;
             this.data.labels = result.dateLabel;
             for (let p in result.profitLoss) {

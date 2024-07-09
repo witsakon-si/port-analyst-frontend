@@ -1,0 +1,53 @@
+<p-card>
+  <form (ngSubmit)="onSubmitLogin()" [formGroup]="loginForm" class="login-form center-screen">
+    <div class="ui-grid ui-grid-responsive ui-grid-pad ui-fluid" style="margin: 10px 0px">
+      <div class="ui-grid-row">
+        <div class="ui-grid-col-12">
+          <h1>Login</h1>
+        </div>
+      </div>
+      <br/>
+      <div class="ui-grid-row">
+        <div class="ui-grid-col-2"></div>
+        <div class="ui-grid-col-6">
+          <p-button styleClass="p-button-outlined" (click)="loginWithGoogle()">
+            <img class="ml-8" alt="logo" src="assets/icons/google_logo.svg" style="width: 1.5rem" />
+            <span class="ml-2 mr-8 font-bold">Google</span>
+          </p-button>
+        </div>
+        <div class="ui-grid-col-4"></div>
+      </div>
+      <h4 class="hr-lines">OR</h4>
+      <div class="ui-grid-row">
+        <div class="ui-grid-col-2">
+        </div>
+        <div class="ui-grid-col-6">
+          <div>
+            <input pInputText type="text" placeholder="Username" formControlName="email" class="form-control"
+                   name="email">
+            <p [hidden]="loginForm.controls['email'].valid || !loginForm.controls['email'].dirty"
+                  class="alert-danger">
+              * Username is required
+            </p>
+          </div>
+          <div>
+            <input pInputText type="password" placeholder="{{loginForm.controls['usePin'].value ? 'PIN' : 'Password'}}"
+                   formControlName="password" class="form-control mt-3"
+                   name="password">
+            <p [hidden]="loginForm.controls['password'].valid || !loginForm.controls['password'].dirty"
+                  class="alert-danger">
+              * Password is required
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="ui-grid-row">
+        <div class="ui-grid-col-2"></div>
+        <div class="ui-grid-col-6">
+          <button class="mt-4" pButton type="submit" label="Submit" [disabled]="!loginForm.valid"></button>
+        </div>
+        <div class="ui-grid-col-4"></div>
+      </div>
+    </div>
+  </form>
+</p-card>

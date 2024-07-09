@@ -3,7 +3,7 @@ import {DateFormatPipe} from "../../../shared/date.pipe";
 import {NumberFormatPipe} from "../../../shared/number.pipe";
 import {MessageService} from "primeng/api";
 import {HttpClient} from "@angular/common/http";
-import {environment} from "../../../../environments/environment";
+import {ApiService} from "../../../service/api.service";
 
 @Component({
     selector: 'note',
@@ -15,9 +15,8 @@ export class NoteComponent implements OnInit {
 
     public notes = [];
 
-    private apiUrl = environment.apiURL;
-
     constructor(private messageService: MessageService,
+                private apiService: ApiService,
                 private http: HttpClient) {
     }
 
@@ -26,10 +25,10 @@ export class NoteComponent implements OnInit {
     }
 
     loadMemo() {
-        this.http.get(this.apiUrl + '/note', {observe: 'response'})
+        this.apiService.get('/note')
             .subscribe({
                 next: data => {
-                    let body = JSON.parse(JSON.stringify(data)).body;
+                    let body = JSON.parse(JSON.stringify(data));
                     this.notes = body.notes;
                     this.notes.forEach((item: any) => {
                         item.updatedAt = new Date(item.updatedAt);

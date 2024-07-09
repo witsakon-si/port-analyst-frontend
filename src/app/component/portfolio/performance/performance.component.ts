@@ -5,11 +5,11 @@ import {AppConfigService} from "../../../service/appconfigservice";
 import {CurrencyPipe} from "../../../shared/currency.pipe";
 import {HttpClient} from "@angular/common/http";
 import {MessageService} from "primeng/api";
-import {environment} from "../../../../environments/environment";
 import {CalendarOptions} from '@fullcalendar/core';
 import dayGridPlugin from "@fullcalendar/daygrid";
 import {DialogService} from 'primeng/dynamicdialog';
 import {ModalComponent} from "../../../shared/modal/modal.component";
+import {ApiService} from "../../../service/api.service";
 
 @Component({
   selector: 'performance',
@@ -26,14 +26,12 @@ export class PerformanceComponent implements OnInit {
   public items = [];
   public cashInOutByYears = [];
 
-  private apiUrl = environment.apiURL;
-
   private isAccordionOpened: boolean = false;
 
   public pLDialog: boolean | any;
   public pLStockDialog: boolean | any;
   public desc = '';
-  
+
     calendarOptions: CalendarOptions = {
         initialView: 'dayGridYear',
         plugins: [dayGridPlugin],
@@ -51,16 +49,17 @@ export class PerformanceComponent implements OnInit {
         events: [],
         eventClick: (info) => this.showDetailDialog(info.event.extendedProps['details']),
     };
-    
+
 
   constructor(private numberFormatPipe: NumberFormatPipe, private currencyPipe: CurrencyPipe, private configService: AppConfigService,
               private messageService: MessageService,
+              private apiService: ApiService,
               private dialogService: DialogService,
               private http: HttpClient) {
   }
 
   ngOnInit(): void {
-    
+
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -68,7 +67,7 @@ export class PerformanceComponent implements OnInit {
           this.setData();
       }
   }
-  
+
   setData() {
     this.items = this.realizePLByYear;
   }
@@ -80,10 +79,10 @@ export class PerformanceComponent implements OnInit {
 
   loadCashInOutByYear() {
     this.openAccordion();
-    this.http.get(this.apiUrl + '/account/cash-in-out-by-year', {observe: 'response'})
+    this.apiService.get('/account/cash-in-out-by-year')
         .subscribe({
           next: data => {
-            let body = JSON.parse(JSON.stringify(data)).body;
+            let body = JSON.parse(JSON.stringify(data));
             this.cashInOutByYears = body;
           },
           error: error => {
@@ -91,7 +90,7 @@ export class PerformanceComponent implements OnInit {
           }
         });
   }
-  
+
   generateEvent() {
       this.calendarOptions.events = [];
       console.log(this.realizePLByWeek);
@@ -113,15 +112,15 @@ export class PerformanceComponent implements OnInit {
       this.pLDialog = true;
       this.generateEvent();
   }
-  
+
   hidePLDialog() {
     this.pLDialog = false;
   }
-  
+
   showPLStockDialog() {
       this.pLStockDialog = true;
   }
-  
+
   hidePLStockDialog() {
     this.pLStockDialog = false;
   }

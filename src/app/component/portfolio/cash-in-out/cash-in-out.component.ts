@@ -3,10 +3,10 @@ import {DateFormatPipe} from "../../../shared/date.pipe";
 import {ConfirmationService, MessageService} from "primeng/api";
 import {HttpClient} from "@angular/common/http";
 import {NumberFormatPipe} from "../../../shared/number.pipe";
-import {environment} from "../../../../environments/environment";
 import {ModalComponent} from "../../../shared/modal/modal.component";
 import {DialogService} from "primeng/dynamicdialog";
 import {CurrencyPipe} from "../../../shared/currency.pipe";
+import {ApiService} from "../../../service/api.service";
 
 @Component({
   selector: 'cash-in-out',
@@ -19,15 +19,13 @@ export class CashInOutComponent implements OnInit {
   @Input('account') account: string | undefined;
   @Input('accountInfo') accountInfo: any | undefined;
 
-  private apiUrl = environment.apiURL;
-
   public cashInOut: any;
   public cashInOutList = [];
 
   public showDialog: boolean | undefined;
   public showChartDialog: boolean | undefined;
   public submitted = false;
-  
+
   public chartData = {};
 
   cashType: any[];
@@ -36,6 +34,7 @@ export class CashInOutComponent implements OnInit {
   constructor(private confirmationService: ConfirmationService,
               private dialogService: DialogService,
               private messageService: MessageService,
+              private apiService: ApiService,
               private numberFormatPipe: NumberFormatPipe,
               private currencyPipe: CurrencyPipe,
               private dateFormatPipe: DateFormatPipe,
@@ -51,10 +50,10 @@ export class CashInOutComponent implements OnInit {
   }
 
   loadCashInOutHistory() {
-    this.http.get(this.apiUrl + '/account/cash-in-out/' + this.account, {observe: 'response'})
+    this.apiService.get('/account/cash-in-out/' + this.account)
       .subscribe({
         next: data => {
-          let body = JSON.parse(JSON.stringify(data)).body;
+          let body = JSON.parse(JSON.stringify(data));
           this.cashInOutList = body;
           this.cashInOutList.forEach((item: any) => {
             item.transactionDate = new Date(item.transactionDate)
@@ -112,7 +111,7 @@ export class CashInOutComponent implements OnInit {
 
   save() {
     this.submitted = true;
-    this.http.post(this.apiUrl + '/account/cash-in-out', this.cashInOut)
+    this.apiService.post('/account/cash-in-out', this.cashInOut)
       .subscribe({
         next: data => {
           this.hideDialog();
@@ -136,7 +135,7 @@ export class CashInOutComponent implements OnInit {
       header: 'Confirm',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.http.delete(this.apiUrl + '/account/cash-in-out/' + cashInOut.id)
+        this.apiService.delete('/account/cash-in-out/' + cashInOut.id)
           .subscribe({
             next: data => {
               this.loadCashInOutHistory();

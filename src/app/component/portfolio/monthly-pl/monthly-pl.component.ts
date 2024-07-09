@@ -3,9 +3,8 @@ import {DateFormatPipe} from "../../../shared/date.pipe";
 import {NumberFormatPipe} from "../../../shared/number.pipe";
 import {HttpClient} from "@angular/common/http";
 import {MessageService} from "primeng/api";
-import {environment} from "../../../../environments/environment";
 import {AppConfig} from "../../../domain/appconfig";
-import {AppConfigService} from "../../../service/appconfigservice";
+import {ApiService} from "../../../service/api.service";
 
 @Component({
   selector: 'monthly-pl',
@@ -14,20 +13,19 @@ import {AppConfigService} from "../../../service/appconfigservice";
   providers: [DateFormatPipe, NumberFormatPipe],
 })
 export class MonthlyPlComponent implements OnInit {
-  private apiUrl = environment.apiURL;
   @Input() monthlyPlParam: string = '';
-  
+
   data: any;
   options: any;
   config: AppConfig | undefined;
 
   constructor(private http: HttpClient,
               private messageService: MessageService,
-              private configService: AppConfigService) {
+              private apiService: ApiService) {
 
     // this.applyDarkTheme();
   }
-  
+
   ngOnInit(): void {
     this.data = {
       labels: [],
@@ -43,10 +41,10 @@ export class MonthlyPlComponent implements OnInit {
   }
 
   getMonthPL() {
-    this.http.get(this.apiUrl + '/daily-asset/monthly-pl/' + this.monthlyPlParam, {observe: 'response'})
+    this.apiService.get('/daily-asset/monthly-pl/' + this.monthlyPlParam)
         .subscribe({
           next: data => {
-            let body = JSON.parse(JSON.stringify(data)).body;
+            let body = JSON.parse(JSON.stringify(data));
             const result = body.result;
             this.data.labels = result.monthLabel;
             for (let p in result.profitLoss) {

@@ -1,6 +1,7 @@
 import {Component} from '@angular/core';
 import {MenuItem} from "./domain/menuitem";
 import {LoadingService} from "./service/loadingService";
+import {AuthService} from "./auth/auth.service";
 
 @Component({
   selector: 'app-root',
@@ -13,8 +14,9 @@ export class AppComponent {
   showMenu = true;
   pageHasMenu = ['/portfolio', '/price-alert'];
 
-  constructor(public loadingService: LoadingService) {}
-
+  constructor(public loadingService: LoadingService,
+              private authService: AuthService) {
+  }
   ngOnInit() {
     document.documentElement.style.fontSize = 14 + 'px';
     this.items = [
@@ -28,6 +30,10 @@ export class AppComponent {
           {
             label: 'Price Alert',
             routerLink: '/price-alert'
+          },
+          {
+            label: 'Logout',
+            command: (): void => this.authService.logout()
           }
         ]
       }

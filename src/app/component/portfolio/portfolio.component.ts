@@ -14,14 +14,13 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import {PeriodFormatPipe} from "../../shared/period.pipe";
 import {ModalComponent} from "../../shared/modal/modal.component";
 import {DialogService} from "primeng/dynamicdialog";
-import {di, ex} from "@fullcalendar/core/internal-common";
+import {ApiService} from "../../service/api.service";
 
 @Component({
   templateUrl: './portfolio.component.html',
   providers: [MessageService, ConfirmationService, NumberFormatPipe, DateFormatPipe, PeriodFormatPipe, DialogService],
 })
 export class PortfolioComponent implements OnInit {
-  private apiUrl = environment.apiURL;
 
   chartOptions: any;
 
@@ -71,7 +70,7 @@ export class PortfolioComponent implements OnInit {
 
   settingDialog: boolean | any;
   checkedDiffAsset: boolean | any;
-  
+
   simulatePLDialog: boolean | any;
   simulatePLs: any[];
   stepPrice = [0.01, 0.02, 0.05, 0.1, 0.25, 0.5, 1, 2];
@@ -97,7 +96,7 @@ export class PortfolioComponent implements OnInit {
   selectedOrder: boolean = false;
   selectedDividend: boolean = false;
   selectedDividendSt: boolean = false;
-  
+
   matchOrderMode: boolean = false;
   orderMatch: any = {};
 
@@ -123,6 +122,7 @@ export class PortfolioComponent implements OnInit {
               private dialogService: DialogService,
               private numberFormatPipe: NumberFormatPipe,
               public periodFormatPipe: PeriodFormatPipe,
+              private apiService: ApiService,
               private messageService: MessageService, private confirmationService: ConfirmationService,) {
     this.chartURL = '';
     this.side = [
@@ -168,10 +168,10 @@ export class PortfolioComponent implements OnInit {
 
   loadAssetHistory() {
     this.clearOrderMatch();
-    this.http.get(this.apiUrl + '/history/', {observe: 'response'})
+    this.apiService.get('/history')
       .subscribe({
         next: data => {
-          let body = JSON.parse(JSON.stringify(data)).body;
+          let body = JSON.parse(JSON.stringify(data));
           this.dataCost = new Map();
           this.dataUnit = new Map();
           this.realizePLByYear = body.realizePLByYearType;
@@ -236,10 +236,10 @@ export class PortfolioComponent implements OnInit {
   }
 
   getChartURL(name: string) {
-    this.http.get(this.apiUrl + '/getChartURL?asset='+name, {observe: 'response'})
+    this.apiService.get('/getChartURL?asset='+name)
       .subscribe({
         next: data => {
-          let body = JSON.parse(JSON.stringify(data)).body;
+          let body = JSON.parse(JSON.stringify(data));
           this.chartURL = body.message;
         },
         error: error => {
@@ -249,10 +249,10 @@ export class PortfolioComponent implements OnInit {
   }
 
   getFullPrice(history: History) {
-    this.http.get(this.apiUrl + '/get-stock-price/'+history.name, {observe: 'response'})
+    this.apiService.get('/get-stock-price/'+history.name)
       .subscribe({
         next: data => {
-          let body = JSON.parse(JSON.stringify(data)).body;
+          let body = JSON.parse(JSON.stringify(data));
           if (body) {
             const price = body.fullPrice;
             const refPrice = body.refPrice;
@@ -361,7 +361,7 @@ export class PortfolioComponent implements OnInit {
     diff0.totalBuy = diff0.sumBuy + diff0.commissionBuy + diff0.vatBuy;
     diff0.totalSell = diff0.sumSell - diff0.commissionSell - diff0.vatSell;
     diff0.net = diff0.totalSell - diff0.totalBuy;
-    
+
     for (let i = -round; i <= round; i++) {
       if (i == 0) {
         this.simulatePLs.push(diff0);
@@ -433,7 +433,7 @@ export class PortfolioComponent implements OnInit {
       header: 'Confirm',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.http.delete(this.apiUrl + '/history/' + history.id)
+        this.apiService.delete('/history/' + history.id)
           .subscribe({
             next: data => {
               this.loadAssetHistory();
@@ -462,7 +462,7 @@ export class PortfolioComponent implements OnInit {
   }
 
   syncPrice() {
-    this.http.get(this.apiUrl + '/syncPrice')
+    this.apiService.get('/syncPrice')
       .subscribe({
         next: data => {
           this.messageService.add({
@@ -509,10 +509,10 @@ export class PortfolioComponent implements OnInit {
   }
 
   loadNote(name: string) {
-    this.http.get(this.apiUrl + '/note/' + name, {observe: 'response'})
+    this.apiService.get('/note/' + name)
       .subscribe({
         next: data => {
-          let body = JSON.parse(JSON.stringify(data)).body;
+          let body = JSON.parse(JSON.stringify(data));
           if (body.responseCode === "DATA_NOT_FOUND") {
             this.lastUpdateNote = '';
           } else {
@@ -527,7 +527,7 @@ export class PortfolioComponent implements OnInit {
   }
 
   saveNote() {
-    this.http.post(this.apiUrl + '/note/' + this.focusName + '?note=' + this.note, null)
+    this.apiService.post('/note/' + this.focusName + '?note=' + this.note, null)
       .subscribe({
         next: data => {
           this.hideSettingDialog();
@@ -547,7 +547,7 @@ export class PortfolioComponent implements OnInit {
   saveHistory() {
     this.submitted = true;
     this.history.orderMatch = this.history.orderMatch ? this.history.orderMatch : '-';
-    this.http.post(this.apiUrl + '/history/', this.history)
+    this.apiService.post('/history', this.history)
       .subscribe({
         next: data => {
           this.hideDialog();
@@ -574,7 +574,7 @@ export class PortfolioComponent implements OnInit {
       this.history.unitPrice = 1;
     }
     this.history.orderMatch = '-';
-    this.http.post(this.apiUrl + '/history/', this.history)
+    this.apiService.post('/history', this.history)
       .subscribe({
         next: data => {
           this.hideDividendDialog();
@@ -789,9 +789,9 @@ export class PortfolioComponent implements OnInit {
   }
 
   changeMatchOrderMode() {
-  
+
   }
-  
+
   changeFilterType() {
     if (this.viewMode.code === 'summary') {
       return;
@@ -893,7 +893,7 @@ export class PortfolioComponent implements OnInit {
     }
     this.resetFilterByType();
   }
-  
+
   resetFilterByType() {
     this.selectedOrder = true;
     this.selectedDividend = true;
@@ -901,7 +901,7 @@ export class PortfolioComponent implements OnInit {
   }
 
   linkApi() {
-    window.open(this.apiUrl + "/history/");
+    window.open(environment.apiURL + "/history/");
   }
 
   toDatetime(d: Date) {
@@ -931,14 +931,14 @@ export class PortfolioComponent implements OnInit {
     desc += '<span class="msg-box-dot"></span>';
     desc += '<span class="msg-box-detail msg-box-right">' + this.numberFormatPipe.transform(history.unit) + '</span>';
     desc += '</div>';
-    
+
     desc += '<br/>';
     desc += '<div class="msg-box">';
     desc += '<span class="msg-box-detail">Net Amount</span>';
     desc += '<span class="msg-box-dot"></span>';
     desc += '<span class="msg-box-detail msg-box-right">' + this.numberFormatPipe.transform(history.netAmount) + '</span>';
     desc += '</div>';
-    
+
     this.dialogService.open(ModalComponent, {
       header: 'Details',
       width: '20%',
@@ -951,7 +951,7 @@ export class PortfolioComponent implements OnInit {
       // console.log(obj);
     });
   }
-  
+
   matchOrder(history: any) {
     if (history.selected) {
       // validate symbol
@@ -971,34 +971,34 @@ export class PortfolioComponent implements OnInit {
       } else {
         Object.assign(this.orderMatch, {historyIds: [history.id]});
       }
-      
+
       // calculate unit
       if (this.orderMatch.totalUnit) {
         this.orderMatch.totalUnit += history.side == 'B' ? history.unit : (history.side == 'S' ? (history.unit * -1) : 0);
       } else {
         this.orderMatch.totalUnit = history.side == 'B' ? history.unit : (history.side == 'S' ? (history.unit * -1) : 0);
       }
-      
+
       // calculate net amount
       if (this.orderMatch.netAmount) {
         this.orderMatch.netAmount += history.side == 'S' ? history.netAmount : (history.side == 'B' ? (history.netAmount * -1) : 0);
       } else {
         this.orderMatch.netAmount = history.side == 'S' ? history.netAmount : (history.side == 'B' ? (history.netAmount * -1) : 0);
       }
-      
+
       // set price (last select) for simulate p/l
       this.orderMatch.price = history.unitPrice;
     } else {
       // remove id
       this.orderMatch.historyIds = this.orderMatch.historyIds.filter((id: any) => id !== history.id);
-      
+
       // calculate unit
       this.orderMatch.totalUnit -= history.side == 'B' ? history.unit : (history.side == 'S' ? (history.unit * -1) : 0);
 
       // calculate net amount
       this.orderMatch.netAmount -= history.side == 'S' ? history.netAmount : (history.side == 'B' ? (history.netAmount * -1) : 0);
     }
-    
+
     // notice
     this.messageService.add({
       severity: 'success',
@@ -1018,7 +1018,7 @@ export class PortfolioComponent implements OnInit {
       header: 'Confirm',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.http.post(this.apiUrl + '/history/match-order', this.orderMatch.historyIds)
+        this.apiService.post('/history/match-order', this.orderMatch.historyIds)
             .subscribe({
               next: data => {
                 this.loadAssetHistory();
@@ -1044,7 +1044,7 @@ export class PortfolioComponent implements OnInit {
       header: 'Confirm',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.http.get(this.apiUrl + '/history/unmatch-order/' + matchOrderId)
+        this.apiService.get('/history/unmatch-order/' + matchOrderId)
             .subscribe({
               next: data => {
                 this.loadAssetHistory();

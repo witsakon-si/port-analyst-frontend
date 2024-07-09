@@ -6,7 +6,7 @@ import {CurrencyPipe} from "../../../../shared/currency.pipe";
 import {UntypedFormBuilder} from "@angular/forms";
 import {ConfirmationService, MessageService} from "primeng/api";
 import {HttpClient} from "@angular/common/http";
-import {environment} from "../../../../../environments/environment";
+import {ApiService} from "../../../../service/api.service";
 
 @Component({
     selector: 'chart-setting',
@@ -15,7 +15,6 @@ import {environment} from "../../../../../environments/environment";
     providers: [MessageService, DateFormatPipe, NumberFormatPipe, CurrencyPipe],
 })
 export class ChartSettingComponent implements OnInit {
-    private apiUrl = environment.apiURL;
 
     @Input('originArrAsset') originArrAsset: any;
     arrAsset: any;
@@ -28,6 +27,7 @@ export class ChartSettingComponent implements OnInit {
                 private formBuilder: UntypedFormBuilder,
                 private http: HttpClient,
                 private messageService: MessageService,
+                private apiService: ApiService,
                 private confirmationService: ConfirmationService,) {
     }
 
@@ -39,10 +39,10 @@ export class ChartSettingComponent implements OnInit {
     }
 
     loadSetting() {
-        this.http.get(this.apiUrl + '/assetInfo', {observe: 'response'})
+        this.apiService.get('/assetInfo')
             .subscribe({
                 next: data => {
-                    let body = JSON.parse(JSON.stringify(data)).body;
+                    let body = JSON.parse(JSON.stringify(data));
                     this.assetInfos = body.result;
                 },
                 error: error => {
@@ -56,7 +56,7 @@ export class ChartSettingComponent implements OnInit {
         this.assetInfo['refName'] = this.assetInfo['refName'] && this.assetInfo['refName'].trim() ? this.assetInfo['refName'] : null;
         this.assetInfo['url'] = this.assetInfo['url'] && this.assetInfo['url'].trim() ? this.assetInfo['url'] : null;
         this.assetInfo['refURL'] = this.assetInfo['refURL'] && this.assetInfo['refURL'].trim() ? this.assetInfo['refURL'] : null;
-        this.http.post(this.apiUrl + '/assetInfo', this.assetInfo)
+        this.apiService.post('/assetInfo', this.assetInfo)
             .subscribe({
                 next: data => {
                     this.messageService.add({
@@ -110,7 +110,7 @@ export class ChartSettingComponent implements OnInit {
             header: 'Confirm',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
-                this.http.delete(this.apiUrl + '/assetInfo/' + data.name)
+                this.apiService.delete('/assetInfo/' + data.name)
                     .subscribe({
                         next: data => {
                             this.loadSetting();
