@@ -38,6 +38,15 @@ export class AppComponent {
         ]
       }
     ];
+    this.handleMenu();
+  }
+
+  handleMenu() {
+    this.showMenu = true;
+    const href = window.location.href;
+    if (href.includes('/login')) {
+      this.showMenu = false;
+    }
   }
 
 }

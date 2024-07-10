@@ -24,6 +24,11 @@ export class LoginComponent implements OnInit {
               private apiService: ApiService,
               private router: Router,
               private messageService: MessageService) {
+
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate(['/price-alert']);
+    }
+
     this.loginForm = new UntypedFormGroup({
       'email': new UntypedFormControl('', Validators.required),
       'password': new UntypedFormControl('', Validators.required),

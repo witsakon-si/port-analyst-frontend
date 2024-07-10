@@ -4,7 +4,8 @@
   <div class="field col-3">
     <p-selectButton [options]="viewModeOption" [(ngModel)]="viewMode" optionLabel="name"
                     (onChange)="changeViewMode()"></p-selectButton>
-    <p-checkbox name="matchOrderMode" class="pt-3" [binary]="true" (onChange)="changeMatchOrderMode()"
+    <p-checkbox *ngIf="viewMode.code === 'all'"
+                name="matchOrderMode" class="pt-3" [binary]="true" (onChange)="changeMatchOrderMode()"
                 label="Match Order / Simulate PL" [(ngModel)]="matchOrderMode"></p-checkbox>
   </div>
   <div class="field col-4">
@@ -206,7 +207,7 @@
                           pButton pRipple type="button" icon="pi pi-bolt"
                           class="table-button2 p-button-text"
                           (click)="unmatchOrder(history.orderMatch)"
-                          style="font-size: 0.1rem"></button>        
+                          style="font-size: 0.1rem"></button>
                 </span>
               </td>
               <td class="text-right">{{history.netAmount | currencyFormat}}</td>
