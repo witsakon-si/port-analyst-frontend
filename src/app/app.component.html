@@ -1,4 +1,4 @@
-<p-menubar *ngIf="showMenu" [model]="items"></p-menubar>
+<p-menubar *ngIf="handleMenu()" [model]="items"></p-menubar>
 <router-outlet></router-outlet>
 
 <div class="progress-spinner" *ngIf="loadingService.isLoading$ | async">

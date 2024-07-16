@@ -45,12 +45,11 @@ export class LoginComponent implements OnInit {
       .subscribe(
         resp => {
           if (resp) {
-            console.log(resp)
             const token = JSON.parse(JSON.stringify(resp)).accessToken;
             if (token) {
               this.authProvider = AuthProvider.local;
               this.authService.setAuthentication(token);
-              this.router.navigate(['/price-alert', this.authProvider], {state: {from: this.router.routerState.snapshot.url}});
+              this.router.navigate(['/price-alert']);
             } else {
               this.messageService.add({
                 severity: 'error',

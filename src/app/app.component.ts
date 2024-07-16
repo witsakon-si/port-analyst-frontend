@@ -11,8 +11,6 @@ import {AuthService} from "./auth/auth.service";
 export class AppComponent {
   title = 'stock-analyst';
   items: MenuItem[] | any;
-  showMenu = true;
-  pageHasMenu = ['/portfolio', '/price-alert'];
 
   constructor(public loadingService: LoadingService,
               private authService: AuthService) {
@@ -38,15 +36,10 @@ export class AppComponent {
         ]
       }
     ];
-    this.handleMenu();
   }
 
   handleMenu() {
-    this.showMenu = true;
-    const href = window.location.href;
-    if (href.includes('/login')) {
-      this.showMenu = false;
-    }
+    return this.authService.isAuthenticated();
   }
 
 }
