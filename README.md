@@ -1,4 +1,4 @@
-## Demo Project URL: http://demo-port-analyst.kapolo.site (Deploy on AWS EC2)
+## Demo Project URL: https://demo-port-analyst.kapolo.site:8888 (Deploy on AWS EC2)
 ### Feature
    - Price Alert
       + Connect socket finnhub.io -> store current price 
