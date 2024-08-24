@@ -6,7 +6,7 @@
     <div class="ui-grid ui-grid-responsive ui-grid-pad ui-fluid" style="margin: 10px 0px">
       <div class="ui-grid-row">
         <div class="ui-grid-col-12">
-          <h1>Login</h1>
+          <h1>Sign In</h1>
         </div>
       </div>
       <br/>
@@ -26,11 +26,11 @@
         </div>
         <div class="ui-grid-col-6">
           <div>
-            <input pInputText type="text" placeholder="Username" formControlName="email" class="form-control"
+            <input pInputText type="text" placeholder="Email" formControlName="email" class="form-control"
                    name="email">
             <p [hidden]="loginForm.controls['email'].valid || !loginForm.controls['email'].dirty"
                   class="alert-danger">
-              * Username is required
+              * Email is required
             </p>
           </div>
           <div>
@@ -56,4 +56,7 @@
   <br>
   <br>
   <br>
+  <small class="pl-5">- Auto create new account for first sign in via Google</small>
+  <br/>
+  <small class="pl-5">- Password will set after first login</small>
 </p-card>
