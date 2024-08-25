@@ -45,10 +45,12 @@ export class LoginComponent implements OnInit {
       .subscribe(
         resp => {
           if (resp) {
-            const token = JSON.parse(JSON.stringify(resp)).accessToken;
+            const data = JSON.parse(JSON.stringify(resp));
+            const token = data.accessToken;
             if (token) {
               this.authProvider = AuthProvider.local;
               this.authService.setAuthentication(token);
+              this.authService.setProfile(data)
               this.router.navigate(['/price-alert']);
             } else {
               this.messageService.add({

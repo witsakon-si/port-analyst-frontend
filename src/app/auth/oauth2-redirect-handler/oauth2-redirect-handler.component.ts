@@ -33,6 +33,7 @@ export class Oauth2RedirectHandlerComponent implements OnInit {
       this.error = params['error'];
       if (this.token) {
         this.authService.setAuthentication(this.token);
+        this.authService.setProfile(params);
         this.router.navigate(
           ['/price-alert', this.authProvider],
           {state: {from: this.router.routerState.snapshot.url}}

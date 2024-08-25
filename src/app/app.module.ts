@@ -12,6 +12,8 @@ import {AppConfigService} from "./service/appconfigservice";
 import {ModalComponent} from "./shared/modal/modal.component";
 import {ButtonModule} from "primeng/button";
 import {authenticationInterceptor} from "./auth/auth.interceptor";
+import {AvatarModule} from "primeng/avatar";
+import {AvatarGroupModule} from "primeng/avatargroup";
 
 @NgModule({
   declarations: [
@@ -26,6 +28,8 @@ import {authenticationInterceptor} from "./auth/auth.interceptor";
     BrowserAnimationsModule,
     ProgressSpinnerModule,
     ButtonModule,
+    AvatarModule,
+    AvatarGroupModule,
   ],
   providers: [
     LoadingService,

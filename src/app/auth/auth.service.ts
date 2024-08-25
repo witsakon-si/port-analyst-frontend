@@ -31,8 +31,17 @@ export class AuthService {
     this.authenticated = true;
   }
 
+  setProfile(data: any) {
+    localStorage.setItem('firstName', data.firstName);
+    localStorage.setItem('lastName', data.lastName);
+    localStorage.setItem('imageUrl', data.imageUrl);
+  }
+
   logout() {
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('firstName');
+    localStorage.removeItem('lastName');
+    localStorage.removeItem('imageUrl');
     this.authenticated = false;
     this.currentUser = null;
     this.router.navigate(['/login']);

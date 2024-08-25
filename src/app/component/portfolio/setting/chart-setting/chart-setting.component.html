@@ -53,17 +53,33 @@
   <br/>
   <ng-template pTemplate="content">
     <div class="former grid">
-      <div class="field col">
+      <div class="field col-4">
         <label for="name">Name</label>
         <p-autoComplete id="name" [(ngModel)]="assetInfo.name" [suggestions]="arrAsset"
                         [disabled]="isEdit"
                         (completeMethod)="searchAsset($event)"></p-autoComplete>
       </div>
-      <div class="field col">
+      <div class="field col-4">
         <label for="refName">Ref Name</label>
         <p-autoComplete id="refName" [(ngModel)]="assetInfo.refName" [suggestions]="arrAsset"
                         (completeMethod)="searchAsset($event)"></p-autoComplete>
       </div>
+      <div class="field col-2">
+        <ng-container *ngIf="assetInfo.refName">
+          <label for="refPriceDiff">Diff</label>
+          <p-inputNumber id="refPriceDiff" [(ngModel)]="assetInfo.refPriceDiff" mode="decimal"
+                         [minFractionDigits]="2"></p-inputNumber>
+        </ng-container>
+      </div>
+      <div class="field col-2">
+        <ng-container *ngIf="assetInfo.refName">
+          <label for="refPriceRange">Range [{{-assetInfo.refPriceRange}}, {{assetInfo.refPriceRange}}]</label>
+          <p-inputNumber id="refPriceRange" [(ngModel)]="assetInfo.refPriceRange" mode="decimal"
+                         [minFractionDigits]="0"></p-inputNumber>
+        </ng-container>
+      </div>
+    </div>
+    <div class="former grid">
       <div class="field col">
         <label for="fullName">Full Name</label>
         <input id="fullName" type="text" pInputText [(ngModel)]="assetInfo.fullName" />

@@ -1,4 +1,12 @@
-<p-menubar *ngIf="handleMenu()" [model]="items"></p-menubar>
+<p-menubar *ngIf="handleMenu()" [model]="items">
+  <ng-template pTemplate="end">
+    <div class="flex align-items-center gap-2">
+      <h3>{{localStorageItem('firstName')}}</h3>
+      <p-avatar class="pl-3" size="large" image="{{localStorageItem('imageUrl')}}" shape="circle" />
+    </div>
+  </ng-template>
+</p-menubar>
+
 <router-outlet></router-outlet>
 
 <div class="progress-spinner" *ngIf="loadingService.isLoading$ | async">

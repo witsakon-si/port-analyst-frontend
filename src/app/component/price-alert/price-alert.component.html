@@ -70,11 +70,11 @@
                 <td>{{data.symbol}}
                 </td>
                 <td>{{data.lastClose | currencyFormat}}</td>
-                <td [ngClass]="{'warning': isFocus(data.symbol)}">{{data.current | currencyFormat}}</td>
+                <td [ngClass]="{'warning': isFocus(data.symbol)}">{{getCurrentPrice(data) | currencyFormat}}</td>
                 <td>{{data.change}}</td>
                 <td>{{data.percentChange}}</td>
-                <td>{{data.high | currencyFormat}}</td>
-                <td>{{data.low | currencyFormat}}</td>
+                <td>{{data.targetPrices ? '-' : data.high | currencyFormat}}</td>
+                <td>{{data.targetPrices ? '-' : data.low | currencyFormat}}</td>
                 <td>{{data.lastUpdate | datetimeFormat}}</td>
             </tr>
         </ng-template>

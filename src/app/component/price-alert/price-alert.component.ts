@@ -43,6 +43,7 @@ export class PriceAlertComponent implements OnInit {
     constructor(private configService: AppConfigService, private http: HttpClient,
                 private authService: AuthService,
                 private apiService: ApiService,
+                private currencyPipe: CurrencyPipe,
                 private messageService: MessageService, private confirmationService: ConfirmationService) {
         this.conditionType = [];
         this.noticeFrequency = [];
@@ -206,7 +207,15 @@ export class PriceAlertComponent implements OnInit {
     }
 
     isFocus(symbol: string) {
-        return this.originArrSymbol.includes(symbol);
+        return this.originArrSymbol?.includes(symbol);
+    }
+
+    getCurrentPrice(data: any) {
+      if (data.targetPrices) {
+        return this.currencyPipe.transform(data.current.toFixed(2));
+      } else {
+        return this.currencyPipe.transform(data.current);
+      }
     }
 
 }

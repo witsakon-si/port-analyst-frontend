@@ -19,7 +19,7 @@ export class AppComponent {
     document.documentElement.style.fontSize = 14 + 'px';
     this.items = [
       {
-        label: 'Tools',
+        label: 'Menu',
         items: [
           {
             label: 'Portfolio',
@@ -42,4 +42,7 @@ export class AppComponent {
     return this.authService.isAuthenticated();
   }
 
+  localStorageItem(id: string) {
+    return localStorage.getItem(id);
+  }
 }

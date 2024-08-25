@@ -93,6 +93,8 @@ export class ChartSettingComponent implements OnInit {
             url: null,
             refName: null,
             refURL: null,
+            refPriceDiff: 0.01,
+            refPriceRange: 5,
         };
         this.showDialog = true;
         this.isEdit = false;
