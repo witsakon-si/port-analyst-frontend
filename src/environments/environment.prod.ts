@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiURL: 'https://api-demo-port.kapolo.site'
+  apiURL: 'https://demo-port.kapolo.site/api'
 };
