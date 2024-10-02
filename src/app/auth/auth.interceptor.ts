@@ -25,11 +25,11 @@ export const authenticationInterceptor: HttpInterceptorFn = (req: HttpRequest<un
         }
         else if (error.status === 401) {
           alert('Invalid username or password');
+          authService.logout();
         }
 
         const errorMessage = JSON.stringify(error.error, null, '\t');
         console.error(errorMessage);
-        authService.logout();
 
         return throwError(() => error);
       }), finalize(() => {

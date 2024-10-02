@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {HttpClient, HttpHeaders} from "@angular/common/http";
+import {HttpClient, HttpEvent, HttpHeaders, HttpRequest} from "@angular/common/http";
 import {catchError, Observable, throwError} from "rxjs";
 import {environment} from "../../environments/environment";
 
@@ -51,5 +51,15 @@ export class ApiService {
     });
   }
 
+  importFile(path: string, file: File) : Observable<HttpEvent<Blob>> {
+    const formData: FormData = new FormData();
+    formData.append('file', file, file.name);
+    const request = new HttpRequest('POST', this.apiUrl + this.formatPath(path), formData);
+    return this.http.request(request);
+  }
+
+  formatPath(path: string) {
+    return path.endsWith("/") ? path.substring(0, path.length-1) : path;
+  }
 
 }

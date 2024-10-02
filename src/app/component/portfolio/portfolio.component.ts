@@ -100,6 +100,10 @@ export class PortfolioComponent implements OnInit {
   matchOrderMode: boolean = false;
   orderMatch: any = {};
 
+  importDatas: any = [];
+  importMode = false;
+  collapseSelected = false;
+
   calendarOptions: CalendarOptions = {
     initialView: 'dayGridMonth',
     plugins: [dayGridPlugin],
@@ -167,6 +171,7 @@ export class PortfolioComponent implements OnInit {
   }
 
   loadAssetHistory() {
+    this.collapseSelected = false;
     this.clearOrderMatch();
     this.apiService.get('/history')
       .subscribe({
@@ -294,6 +299,7 @@ export class PortfolioComponent implements OnInit {
   }
 
   openNew() {
+    this.collapseSelected = false;
     this.history = {
       transactionDate: new Date(new Date().toDateString()),
       side: 'B',
@@ -483,6 +489,9 @@ export class PortfolioComponent implements OnInit {
   hideDialog() {
     this.historyDialog = false;
     this.submitted = false;
+    this.importMode = false;
+    this.importDatas = [];
+    this.collapseSelected = false;
   }
 
   hideDividendDialog() {
@@ -544,6 +553,14 @@ export class PortfolioComponent implements OnInit {
       });
   }
 
+  selectSaveHistory() {
+    if (this.importMode) {
+      this.saveImport();
+    } else {
+      this.saveHistory();
+    }
+  }
+
   saveHistory() {
     this.submitted = true;
     this.history.orderMatch = this.history.orderMatch ? this.history.orderMatch : '-';
@@ -579,6 +596,26 @@ export class PortfolioComponent implements OnInit {
         next: data => {
           this.hideDividendDialog();
           this.loadAssetHistory();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Successful',
+            detail: "Transaction Saved",
+            life: 3000
+          });
+        },
+        error: error => {
+          this.messageService.add({severity: 'error', summary: 'Error', detail: error.message, life: 3000});
+        }
+      });
+  }
+
+  saveImport() {
+    this.apiService.post('/history/import', this.importDatas)
+      .subscribe({
+        next: data => {
+          this.hideDialog();
+          this.loadAssetHistory();
+          this.importDatas = [];
           this.messageService.add({
             severity: 'success',
             summary: 'Successful',
@@ -1067,4 +1104,50 @@ export class PortfolioComponent implements OnInit {
   clearOrderMatch() {
     this.orderMatch = {};
   }
+
+  onUpload(event: any) {
+    if (event.files.length === 0) {
+      return;
+    }
+    const file = event.files[0];
+      this.apiService.importFile('/history/pdf2json/', file).subscribe({
+        next: resp => {
+          let data = JSON.parse(JSON.stringify(resp));
+          if (data.body) {
+            this.importDatas = data.body.data;
+            if (this.importDatas.length > 0) {
+              this.importDatas.forEach((data: any) => {
+                data.amount = data.unit * data.unitPrice;
+                data.transactionDate = new Date(new Date().toDateString());
+                data.type = data.type.replace('(', ' (');
+              });
+              this.history = this.importDatas[0];
+              this.importMode = true;
+              this.collapseSelected = false;
+            }
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Successful',
+              detail: "Upload Complete",
+              life: 3000
+            });
+          }
+        },
+        error: error => {
+          this.messageService.add({severity: 'error', summary: 'Error', detail: error.message, life: 3000});
+        }
+      });
+    }
+
+    onPageChange(event: any) {
+      this.history = this.importDatas[event.page];
+    }
+
+    openCollapse() {
+      this.collapseSelected = true;
+    }
+
+    closeCollapse() {
+      this.collapseSelected = false;
+    }
 }

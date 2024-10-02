@@ -292,9 +292,27 @@
 </p-card>
 
 <p-dialog [(visible)]="historyDialog" [style]="{width: '500px'}" header="History Details" [modal]="true"
+          (onHide)="hideDialog()"
           styleClass="p-fluid">
   <br/>
   <ng-template pTemplate="content">
+    <div class="former grid">
+      <div class="field col">
+        <p-accordion (onOpen)="openCollapse()" (onClose)="closeCollapse()" expandIcon="pi pi-plus" collapseIcon="pi pi-minus">
+          <p-accordionTab header="" [selected]="collapseSelected">
+            <ng-template pTemplate="header">Import</ng-template>
+            <a href="https://image-service.kapolo.site/pdf/example.pdf" target="_blank">Example PDF</a>
+            <p-fileUpload
+              [customUpload]="true"
+              (uploadHandler)="onUpload($event)" 
+              [multiple]="false"
+              accept=".pdf">
+            </p-fileUpload>
+          </p-accordionTab>
+        </p-accordion>  
+      </div>
+    </div>
+
     <div class="former grid">
       <div class="field col">
         <label for="side">Side</label>
@@ -401,9 +419,15 @@
         <small class="p-error" *ngIf="submitted && !history.netAmount">Net Amt is required.</small>
       </div>
     </div>
-    <br/>
-    <br/>
-    <br/>
+    <p-paginator *ngIf="importMode"
+        (onPageChange)="onPageChange($event)"
+        [first]="0"
+        [rows]="1"
+        [totalRecords]="importDatas.length"
+        [showCurrentPageReport]="true"
+        [showPageLinks]="false"
+        [showJumpToPageDropdown]="false"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords}" />
     <br/>
     <br/>
     <br/>
@@ -415,7 +439,7 @@
   </ng-template>
 
   <ng-template pTemplate="footer">
-    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveHistory()"></button>
+    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="selectSaveHistory()"></button>
     <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
   </ng-template>
 </p-dialog>

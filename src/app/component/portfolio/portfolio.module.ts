@@ -42,6 +42,8 @@ import {SummaryCashInOutComponent} from "./summary-cash-in-out/summary-cash-in-o
 import {NoteComponent} from "./note/note.component";
 import {ChartSettingComponent} from "./setting/chart-setting/chart-setting.component";
 import {FullCalendarModule} from '@fullcalendar/angular';
+import { FileUploadModule } from 'primeng/fileupload';
+import { PaginatorModule } from 'primeng/paginator';
 
 @NgModule({
     imports: [
@@ -75,6 +77,8 @@ import {FullCalendarModule} from '@fullcalendar/angular';
         OverlayPanelModule,
         SharedModule,
         FullCalendarModule,
+        FileUploadModule,
+        PaginatorModule,
     ],
     declarations: [
         PortfolioComponent,
