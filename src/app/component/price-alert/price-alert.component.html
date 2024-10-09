@@ -67,10 +67,10 @@
                             class="table-button p-button-rounded p-button-text"
                             [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></button>
                 </td>
-                <td>{{data.symbol}}
+                <td [ngClass]="{'warning': isFocus(data.symbol)}">{{data.symbol}}
                 </td>
                 <td>{{data.lastClose | currencyFormat}}</td>
-                <td [ngClass]="{'warning': isFocus(data.symbol)}">{{getCurrentPrice(data) | currencyFormat}}</td>
+                <td [ngClass]="{'price-up': data.priceChangeStatus === 'UP', 'price-down': data.priceChangeStatus === 'DOWN'}">{{getCurrentPrice(data) | currencyFormat}}</td>
                 <td>{{data.change}}</td>
                 <td>{{data.percentChange}}</td>
                 <td>{{data.targetPrices ? '-' : data.high | currencyFormat}}</td>

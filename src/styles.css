@@ -1,9 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
-.side-buy, .side-buy input, .profit {
+.side-buy, .side-buy input, .profit, .price-up {
   background-color: #3d4035 !important;
   /*color: #161d21 !important;*/
 }
-.side-sell, .side-sell input, .loss {
+.side-sell, .side-sell input, .loss, .price-down {
   background-color: #8a2f47 !important;
   /*color: #161d21 !important;*/
 }
